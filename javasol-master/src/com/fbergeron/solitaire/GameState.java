@@ -359,7 +359,7 @@ public class GameState {
 
     // Restore the game state to the previous state
     // In the case of undo this would be before the last move
-    public void restoreGameState( GameInfo gameInfo, ClassicDeck deck, Stack revealedCards, SolitaireStack[] solStack, SequentialStack[] seqStack, Move move) {
+    public void restoreGameState( GameInfo gameInfo, ClassicDeck deck, Stack revealedCards, SolitaireStack[] solStack, SequentialStack[] seqStack) {
         gameInfo.setType( this.gameInfo.getType() );
         gameInfo.setSeed( this.gameInfo.getSeed() );
         for( ; !revealedCards.isEmpty(); ){
