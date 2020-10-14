@@ -520,7 +520,7 @@ public class Solitaire extends Frame
     
     class RestartListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
-            gameStates.get( 0 ).restoreGameState( gameInfo, deck, revealedCards, solStack, seqStack, null );
+            gameStates.get( 0 ).restoreGameState( gameInfo, deck, revealedCards, solStack, seqStack);
             gameStates = new ArrayList<GameState>();
             pushGameState( new GameState( gameInfo, deck, revealedCards, solStack, seqStack, null, null, null ) );
             
@@ -536,7 +536,7 @@ public class Solitaire extends Frame
     class UndoListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             if( gameStates.size() - 2 >= 0 ) {
-                gameStates.get( gameStates.size() - 2 ).restoreGameState( gameInfo, deck, revealedCards, solStack, seqStack, null );
+                gameStates.get( gameStates.size() - 2 ).restoreGameState( gameInfo, deck, revealedCards, solStack, seqStack);
                 popGameState();
                 counter++;
             }
