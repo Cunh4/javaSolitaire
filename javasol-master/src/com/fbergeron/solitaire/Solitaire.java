@@ -79,58 +79,46 @@ public class Solitaire extends Frame
         setLayout( new BorderLayout( 0, 0 ) );
         setResizable( false );
 
-        class LocaleListener implements ItemListener {
-            public LocaleListener( Locale locale ) {
-                this.locale = locale;
-            }
+        createMenus();
 
-            public void itemStateChanged( ItemEvent e ) {
-                Solitaire.this.setLocale( locale );
-            }
+        //String backgroundImageName = "test";
+        //backgroundImage = Util.getImageResourceFile(backgroundImageName + ".png", Solitaire.class );
 
-            Locale locale;
-        }
-
-        class LevelListener implements ItemListener {
-            public LevelListener( String level ) {
-                this.level = level;
-            }
-
-            public void itemStateChanged( ItemEvent e ) {
-                Solitaire.this.setGameType( level );
-                Solitaire.this.newGame();
-                
-            }
-
-            String level;
-        }
-
-        class LicenseListener implements ActionListener {
-            public void actionPerformed(ActionEvent e) {
-                String title = resBundle.getString( "License" );
-                String msg = resBundle.getString( "LicenseText" );
-                DialogMsg licenseWindow = new DialogMsg( Solitaire.this, title, true, msg );
-                licenseWindow.setLocation( 20, 20 );
-                licenseWindow.setSize( 500, 300 );
-                licenseWindow.setFont( new Font( "Arial", Font.PLAIN, 14 ) );
-                licenseWindow.setResizable( true );
-                licenseWindow.setVisible( true );
-            }
-        }
+        Button dica = new Button("Hint");
+        dica.setBounds(160, 500, 50, 50);
+        dica.addActionListener(new hintOuvidor());
+        dica.setBackground(new Color (135,206,250));
+        dica.setFocusable(false);
+        add(dica);
+        
+        desfazer = new Button("Undo");
+        desfazer.setBounds(220, 500, 50, 50);
+        desfazer.addActionListener(new UndoListener());
+        desfazer.setBackground(new Color (135,206,250));
+        desfazer.setFocusable(false);
+        desfazer.setEnabled(false);
+        add(desfazer);
         
         
-        class HintListener implements ItemListener {
-            public void itemStateChanged(ItemEvent e) {
-                if( table != null )
-                    table.repaint();
-            }
-        }
+        //Table
+        table = new Table();
+        add("Center", table);
+        MouseManager mouseManager = new MouseManager();
+        table.addMouseListener( mouseManager );
+        table.addMouseMotionListener( mouseManager );
 
-        //Menus
-        menubar = new MenuBar();
-        setMenuBar( menubar );
+        setSize((ClassicCard.DEFAULT_WIDTH + 5) * SOL_STACK_CNT + 20 + getInsets().left + getInsets().right + 3,560);
 
-        //Menu Options
+        addWindowListener(
+            new SolitaireWindowManager( this,
+                isApplet ? WindowManager.HIDE_ON_CLOSE : WindowManager.EXIT_ON_CLOSE ) );
+
+        setupWinnable();
+        newGame();
+        setVisible( true );
+    }
+
+        public void criarMenuOptions() {
         menuOptions = new Menu( "Options" );
         menubar.add( menuOptions );
         menuItemNewGame = new MenuItem( "NewGame");
@@ -168,68 +156,92 @@ public class Solitaire extends Frame
         menuOptions.add( menuItemLevelNormal );
         menuOptions.add( menuItemLevelHard );
         menuOptions.add( menuItemLevelTricky );
+    }
+    
+    public void criarMenuHelp() {
+         menuHelp = new Menu( "Help" );
+         menubar.add( menuHelp );
+         menuItemRules = new MenuItem( "Rules" );
+         menuItemRules.addActionListener( new RulesListener() );
+         menuItemAbout = new MenuItem( "About" );
+         menuItemAbout.addActionListener( new AboutListener() );
+         menuItemLicense = new MenuItem();
+         menuItemLicense.addActionListener( new LicenseListener() );
+         menuHelp.add( menuItemRules );
+         menuHelp.add( new MenuItem( "-" ) );
+         menuHelp.add( menuItemAbout );
+         menuHelp.add( menuItemLicense );
+         menuHelp.add( new MenuItem( "-" ) );
+         menuItemHint = new CheckboxMenuItem( "Hint" );
+         menuItemHint.setShortcut( new MenuShortcut( KeyEvent.VK_H, false ) );
+         menuItemHint.addItemListener( new HintListener() );
+         menuHelp.add( menuItemHint );
+         menuHelp.add( new MenuItem( "-" ) );
+         menuItemEnglish = new CheckboxMenuItem( "English" );
+         menuItemEnglish.addItemListener( new LocaleListener( Locale.ENGLISH ) );
+         menuItemFrench = new CheckboxMenuItem( "French" );
+         menuItemFrench.addItemListener( new LocaleListener( Locale.FRENCH ) );
+         menuHelp.add( menuItemEnglish );
+         menuHelp.add( menuItemFrench );
+    }
+    
+    public void createMenus() {
+        //Menus
+        menubar = new MenuBar();
+        setMenuBar( menubar );
+
+        //Menu Options
+        criarMenuOptions();
 
         //Menu Help
-        menuHelp = new Menu( "Help" );
-        menubar.add( menuHelp );
-        menuItemRules = new MenuItem( "Rules" );
-        menuItemRules.addActionListener( new RulesListener() );
-        menuItemAbout = new MenuItem( "About" );
-        menuItemAbout.addActionListener( new AboutListener() );
-        menuItemLicense = new MenuItem();
-        menuItemLicense.addActionListener( new LicenseListener() );
-        menuHelp.add( menuItemRules );
-        menuHelp.add( new MenuItem( "-" ) );
-        menuHelp.add( menuItemAbout );
-        menuHelp.add( menuItemLicense );
-        menuHelp.add( new MenuItem( "-" ) );
-        menuItemHint = new CheckboxMenuItem( "Hint" );
-        menuItemHint.setShortcut( new MenuShortcut( KeyEvent.VK_H, false ) );
-        menuItemHint.addItemListener( new HintListener() );
-        menuHelp.add( menuItemHint );
-        menuHelp.add( new MenuItem( "-" ) );
-        menuItemEnglish = new CheckboxMenuItem( "English" );
-        menuItemEnglish.addItemListener( new LocaleListener( Locale.ENGLISH ) );
-        menuItemFrench = new CheckboxMenuItem( "French" );
-        menuItemFrench.addItemListener( new LocaleListener( Locale.FRENCH ) );
-        menuHelp.add( menuItemEnglish );
-        menuHelp.add( menuItemFrench );
+        criarMenuHelp();
+    }
+    
+    protected class LocaleListener implements ItemListener {
+        public LocaleListener( Locale locale ) {
+            this.locale = locale;
+        }
 
-        //String backgroundImageName = "test";
-        //backgroundImage = Util.getImageResourceFile(backgroundImageName + ".png", Solitaire.class );
+        public void itemStateChanged( ItemEvent e ) {
+            Solitaire.this.setLocale( locale );
+        }
 
-        Button dica = new Button("Hint");
-        dica.setBounds(160, 500, 50, 50);
-        dica.addActionListener(new hintOuvidor());
-        dica.setBackground(new Color (135,206,250));
-        dica.setFocusable(false);
-        add(dica);
-        
-        desfazer = new Button("Undo");
-        desfazer.setBounds(220, 500, 50, 50);
-        desfazer.addActionListener(new UndoListener());
-        desfazer.setBackground(new Color (135,206,250));
-        desfazer.setFocusable(false);
-        desfazer.setEnabled(false);
-        add(desfazer);
-        
-        
-        //Table
-        table = new Table();
-        add("Center", table);
-        MouseManager mouseManager = new MouseManager();
-        table.addMouseListener( mouseManager );
-        table.addMouseMotionListener( mouseManager );
+        Locale locale;
+    }
 
-        setSize((ClassicCard.DEFAULT_WIDTH + 5) * SOL_STACK_CNT + 20 + getInsets().left + getInsets().right + 3,560);
+    protected class LevelListener implements ItemListener {
+        public LevelListener( String level ) {
+            this.level = level;
+        }
 
-        addWindowListener(
-            new SolitaireWindowManager( this,
-                isApplet ? WindowManager.HIDE_ON_CLOSE : WindowManager.EXIT_ON_CLOSE ) );
+        public void itemStateChanged( ItemEvent e ) {
+            Solitaire.this.setGameType( level );
+            Solitaire.this.newGame();
+            
+        }
 
-        setupWinnable();
-        newGame();
-        setVisible( true );
+        String level;
+    }
+
+    protected class LicenseListener implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            String title = resBundle.getString( "License" );
+            String msg = resBundle.getString( "LicenseText" );
+            DialogMsg licenseWindow = new DialogMsg( Solitaire.this, title, true, msg );
+            licenseWindow.setLocation( 20, 20 );
+            licenseWindow.setSize( 500, 300 );
+            licenseWindow.setFont( new Font( "Arial", Font.PLAIN, 14 ) );
+            licenseWindow.setResizable( true );
+            licenseWindow.setVisible( true );
+        }
+    }
+    
+    
+    protected class HintListener implements ItemListener {
+        public void itemStateChanged(ItemEvent e) {
+            if( table != null )
+                table.repaint();
+        }
     }
     
     public Solitaire outer() {
